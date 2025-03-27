@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全螢幕播放影片的拼圖遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        #puzzle-container {
+            width: 500px;
+            height: 500px;
+            display: flex;
+            flex-wrap: wrap;
+            border: 2px solid #000;
+            position: relative;
+        }
+
+        .tile {
+            width: 166px;
+            height: 166px;
+            background-size: 500px 500px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        /* 小螢幕調整 */
+        @media (max-width: 600px) {
+            #puzzle-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .tile {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        /* 橫屏模式 */
+        @media (orientation: landscape) {
+            #puzzle-container {
+                width: 400px;
+                height: 300px;
+            }
+
+            .tile {
+                width: 133px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="bg-music" src="您的音樂檔案路徑.mp3" loop></audio>
+    <div id="puzzle-container"></div>
+    <video id="video-player" controls>
+        <source src="my_vedio.mp4" type="video/mp4">
+        您的瀏覽器不支援影片播放。
+    </video>
+    <p id="message"></p>
+
+    <script>
+        const imageSrc = 'front.jpg'; // 替換為您的圖片路徑
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const bgMusic = document.getElementById('bg-music');
+        const message = document.getElementById('message');
+        const videoPlayer = document.getElementById('video-player');
+        let tiles = [];
+        let originalOrder = [];
+        let selectedTile = null;
+
+        window.onload = function() {
+            startGame();
+        };
+
+        function startGame() {
+            bgMusic.play();
+            generatePuzzle();
+            shuffleTiles();
+            renderPuzzle();
+        }
+
+        function generatePuzzle() {
+            tiles = [];
+            originalOrder = [];
+            for (let i = 0; i < 9; i++) {
+                tiles.push(i);
+                originalOrder.push(i);
+            }
+        }
+
+        function shuffleTiles() {
+            for (let i = tiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+            }
+        }
+
+        function renderPuzzle() {
+            puzzleContainer.innerHTML = '';
+            tiles.forEach((tile, index) => {
+                const tileElement = document.createElement('div');
+                tileElement.classList.add('tile');
+                tileElement.dataset.index = index;
+
+                if (tile !== null) {
+                    tileElement.style.backgroundImage = `url(${imageSrc})`;
+                    tileElement.style.backgroundPosition = `${-(tile % 3) * 166}px ${-Math.floor(tile / 3) * 166}px`;
+                }
+
+                tileElement.addEventListener('click', () => handleTileClick(index));
+                puzzleContainer.appendChild(tileElement);
+            });
+        }
+
+        function handleTileClick(index) {
+            if (selectedTile === null) {
+                selectedTile = index;
+            } else {
+                [tiles[selectedTile], tiles[index]] = [tiles[index], tiles[selectedTile]];
+                renderPuzzle();
+                selectedTile = null;
+                checkCompletion();
+            }
+        }
+
+        function checkCompletion() {
+            if (tiles.every((tile, index) => tile === originalOrder[index])) {
+                message.textContent = '恭喜你完成拼圖！即將播放影片。';
+                bgMusic.pause();
+                setTimeout(() => {
+                    playFullScreenVideo();
+                }, 1000);
+            }
+        }
+
+        function playFullScreenVideo() {
+            videoPlayer.style.display = 'block';
+            const requestFullScreen = videoPlayer.requestFullscreen || videoPlayer.webkitRequestFullscreen || videoPlayer.mozRequestFullScreen || videoPlayer.msRequestFullscreen;
+            if (requestFullScreen) {
+                requestFullScreen.call(videoPlayer);
+            }
+            videoPlayer.play();
+        }
+
+        // 偵測手機方向改變
+        window.addEventListener("orientationchange", () => {
+            if (window.orientation === 90 || window.orientation === -90) {
+                message.textContent = "橫屏模式已啟用！";
+            } else {
+                message.textContent = "請切換到橫屏模式以獲得最佳遊玩體驗。";
+            }
+        });
+    </script>
+</body>
+</html>
