@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -21,17 +21,21 @@
             height: 500px;
             display: flex;
             flex-wrap: wrap;
-            border: 2px solid #000;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加柔和的陰影效果 */
         }
 
         .tile {
             width: 166px;
             height: 166px;
             background-size: 500px 500px;
-            border: 1px solid #ccc;
             cursor: pointer;
             box-sizing: border-box;
+            transition: transform 0.2s ease; /* 添加平滑的點擊動畫 */
+        }
+
+        .tile:hover {
+            transform: scale(1.05); /* 滑鼠懸停時放大 */
         }
 
         video {
@@ -47,7 +51,7 @@
             font-weight: bold;
         }
 
-        /* 小螢幕調整 */
+        /* 響應式設計 */
         @media (max-width: 600px) {
             #puzzle-container {
                 width: 300px;
@@ -78,7 +82,7 @@
     <audio id="bg-music" src="您的音樂檔案路徑.mp3" loop></audio>
     <div id="puzzle-container"></div>
     <video id="video-player" controls>
-        <source src="my_vedio.mp4" type="video/mp4">
+        <source src="my_video.mp4" type="video/mp4">
         您的瀏覽器不支援影片播放。
     </video>
     <p id="message"></p>
@@ -98,7 +102,7 @@
         };
 
         function startGame() {
-            bgMusic.play();
+            bgMusic.play(); // 自動播放背景音樂
             generatePuzzle();
             shuffleTiles();
             renderPuzzle();
@@ -108,15 +112,15 @@
             tiles = [];
             originalOrder = [];
             for (let i = 0; i < 9; i++) {
-                tiles.push(i);
-                originalOrder.push(i);
+                tiles.push(i); // 初始化拼圖編號
+                originalOrder.push(i); // 保存正確順序
             }
         }
 
         function shuffleTiles() {
             for (let i = tiles.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]]; // 隨機打亂拼圖
             }
         }
 
@@ -166,15 +170,6 @@
             }
             videoPlayer.play();
         }
-
-        // 偵測手機方向改變
-        window.addEventListener("orientationchange", () => {
-            if (window.orientation === 90 || window.orientation === -90) {
-                message.textContent = "橫屏模式已啟用！";
-            } else {
-                message.textContent = "請切換到橫屏模式以獲得最佳遊玩體驗。";
-            }
-        });
     </script>
 </body>
 </html>
