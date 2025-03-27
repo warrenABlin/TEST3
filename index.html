@@ -17,25 +17,23 @@
         }
 
         #puzzle-container {
-            width: 500px;
-            height: 500px;
             display: flex;
             flex-wrap: wrap;
             position: relative;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加柔和的陰影效果 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .tile {
-            width: 166px;
-            height: 166px;
-            background-size: 500px 500px;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
             cursor: pointer;
             box-sizing: border-box;
-            transition: transform 0.2s ease; /* 添加平滑的點擊動畫 */
+            transition: transform 0.2s ease;
         }
 
         .tile:hover {
-            transform: scale(1.05); /* 滑鼠懸停時放大 */
+            transform: scale(1.05);
         }
 
         video {
@@ -49,32 +47,6 @@
             margin-top: 20px;
             font-size: 1.2em;
             font-weight: bold;
-        }
-
-        /* 響應式設計 */
-        @media (max-width: 600px) {
-            #puzzle-container {
-                width: 300px;
-                height: 300px;
-            }
-
-            .tile {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        /* 橫屏模式 */
-        @media (orientation: landscape) {
-            #puzzle-container {
-                width: 400px;
-                height: 300px;
-            }
-
-            .tile {
-                width: 133px;
-                height: 100px;
-            }
         }
     </style>
 </head>
@@ -93,6 +65,13 @@
         const bgMusic = document.getElementById('bg-music');
         const message = document.getElementById('message');
         const videoPlayer = document.getElementById('video-player');
+        const imageWidth = 900; // 圖片寬度（替換為您的圖片寬度）
+        const imageHeight = 600; // 圖片高度（替換為您的圖片高度）
+        const cols = 3; // 拼圖列數
+        const rows = 3; // 拼圖行數
+        const tileWidth = imageWidth / cols; // 每個拼圖塊寬度
+        const tileHeight = imageHeight / rows; // 每個拼圖塊高度
+
         let tiles = [];
         let originalOrder = [];
         let selectedTile = null;
@@ -102,7 +81,9 @@
         };
 
         function startGame() {
-            bgMusic.play(); // 自動播放背景音樂
+            puzzleContainer.style.width = `${imageWidth}px`;
+            puzzleContainer.style.height = `${imageHeight}px`;
+            bgMusic.play();
             generatePuzzle();
             shuffleTiles();
             renderPuzzle();
@@ -111,16 +92,16 @@
         function generatePuzzle() {
             tiles = [];
             originalOrder = [];
-            for (let i = 0; i < 9; i++) {
-                tiles.push(i); // 初始化拼圖編號
-                originalOrder.push(i); // 保存正確順序
+            for (let i = 0; i < cols * rows; i++) {
+                tiles.push(i);
+                originalOrder.push(i);
             }
         }
 
         function shuffleTiles() {
             for (let i = tiles.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [tiles[i], tiles[j]] = [tiles[j], tiles[i]]; // 隨機打亂拼圖
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
             }
         }
 
@@ -129,11 +110,15 @@
             tiles.forEach((tile, index) => {
                 const tileElement = document.createElement('div');
                 tileElement.classList.add('tile');
-                tileElement.dataset.index = index;
+                tileElement.style.width = `${tileWidth}px`;
+                tileElement.style.height = `${tileHeight}px`;
 
                 if (tile !== null) {
+                    const x = -(tile % cols) * tileWidth;
+                    const y = -Math.floor(tile / cols) * tileHeight;
                     tileElement.style.backgroundImage = `url(${imageSrc})`;
-                    tileElement.style.backgroundPosition = `${-(tile % 3) * 166}px ${-Math.floor(tile / 3) * 166}px`;
+                    tileElement.style.backgroundSize = `${imageWidth}px ${imageHeight}px`;
+                    tileElement.style.backgroundPosition = `${x}px ${y}px`;
                 }
 
                 tileElement.addEventListener('click', () => handleTileClick(index));
