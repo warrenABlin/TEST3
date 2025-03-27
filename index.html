@@ -48,6 +48,16 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+
+        /* 調整橫屏下拼圖的樣式 */
+        @media (orientation: landscape) {
+            #puzzle-container {
+                position: absolute;
+                left: 50%; /* 使容器水平居中 */
+                top: 50%;  /* 使容器垂直居中 */
+                transform: translate(-50%, -50%); /* 修正居中位置 */
+            }
+        }
     </style>
 </head>
 <body>
@@ -83,6 +93,7 @@
         function startGame() {
             puzzleContainer.style.width = `${imageWidth}px`;
             puzzleContainer.style.height = `${imageHeight}px`;
+            puzzleContainer.style.margin = '0 auto'; // 在其他模式下居中
             bgMusic.play();
             generatePuzzle();
             shuffleTiles();
