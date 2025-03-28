@@ -51,7 +51,14 @@
       font-weight: bold;
     }
 
-    /* 橫屏模式下拼圖容器縮小70%並置中 */
+    button {
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    /* 橫屏模式：拼圖容器縮小70%並置中 */
     @media (orientation: landscape) {
       #puzzle-container {
         position: absolute;
@@ -63,71 +70,76 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" src="您的音樂檔案路徑.mp3" loop></audio>
+  <!-- 背景音樂 -->
+  <audio id="bg-music" src="your_music.mp3" loop></audio>
+  
+  <!-- 拼圖容器 -->
   <div id="puzzle-container"></div>
-  <video id="video-player" controls>
+  
+  <!-- 影片，加入 muted 更有利於部分瀏覽器自動播放 -->
+  <video id="video-player" controls muted>
     <source src="my_video.mp4" type="video/mp4">
     您的瀏覽器不支援影片播放。
   </video>
+  
+  <!-- 訊息顯示區 -->
   <p id="message"></p>
-
+  
   <script>
-    const imageSrc = 'front.jpg'; // 請替換為您的圖片路徑
+    const imageSrc = 'front.jpg'; // 請替換為你的圖片路徑
     const puzzleContainer = document.getElementById('puzzle-container');
     const bgMusic = document.getElementById('bg-music');
     const message = document.getElementById('message');
     const videoPlayer = document.getElementById('video-player');
 
-    // 拼圖設定：3*3
+    // 拼圖設定：3x3 區塊
     const cols = 3;
     const rows = 3;
 
-    // 下面這些變數會動態計算設定
+    // 將由圖片原始尺寸及縮放後計算出來的資料儲存
     let imageWidth, imageHeight, tileWidth, tileHeight;
-    let oriWidth, oriHeight; // 儲存圖片的原始尺寸
+    let oriWidth, oriHeight; // 原始圖片尺寸
     let tiles = [];
     let originalOrder = [];
     let selectedTile = null;
 
-    // 計算當前視窗下等比例縮放後的拼圖尺寸
+    // 根據當前視窗大小計算等比例縮放後的拼圖尺寸
     function calculateDimensions() {
       const maxPuzzleWidth = window.innerWidth * 0.9;
       const maxPuzzleHeight = window.innerHeight * 0.9;
-      // 計算縮放比例，保證不超過視窗尺寸
       const scale = Math.min(maxPuzzleWidth / oriWidth, maxPuzzleHeight / oriHeight, 1);
-
       imageWidth = oriWidth * scale;
       imageHeight = oriHeight * scale;
       tileWidth = imageWidth / cols;
       tileHeight = imageHeight / rows;
-
-      puzzleContainer.style.width = `${imageWidth}px`;
-      puzzleContainer.style.height = `${imageHeight}px`;
+      puzzleContainer.style.width = imageWidth + "px";
+      puzzleContainer.style.height = imageHeight + "px";
     }
 
-    // 重新渲染拼圖，保持目前拼圖順序不變
+    // 根據目前 tiles 陣列的順序重新渲染拼圖
     function renderPuzzle() {
-      puzzleContainer.innerHTML = '';
+      puzzleContainer.innerHTML = "";
       tiles.forEach((tile, index) => {
         const tileElement = document.createElement('div');
         tileElement.classList.add('tile');
-        tileElement.style.width = `${tileWidth}px`;
-        tileElement.style.height = `${tileHeight}px`;
+        tileElement.style.width = tileWidth + "px";
+        tileElement.style.height = tileHeight + "px";
 
         if (tile !== null) {
-          // 計算背景位置，使其正確對應切片位置
+          // 根據 tile 值計算背景圖偏移量
           const x = -(tile % cols) * tileWidth;
           const y = -Math.floor(tile / cols) * tileHeight;
           tileElement.style.backgroundImage = `url(${imageSrc})`;
           tileElement.style.backgroundSize = `${imageWidth}px ${imageHeight}px`;
           tileElement.style.backgroundPosition = `${x}px ${y}px`;
         }
-
+        
         tileElement.addEventListener('click', () => handleTileClick(index));
         puzzleContainer.appendChild(tileElement);
       });
     }
 
+    // 建立拼圖資料
     function generatePuzzle() {
       tiles = [];
       originalOrder = [];
@@ -137,18 +149,20 @@
       }
     }
 
+    // 隨機洗牌 (Fisher-Yates 演算法)
     function shuffleTiles() {
-      // Fisher-Yates 洗牌法
       for (let i = tiles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
       }
     }
 
+    // 處理拼圖塊點擊事件
     function handleTileClick(index) {
       if (selectedTile === null) {
         selectedTile = index;
       } else {
+        // 交換選中與點擊的拼圖塊
         [tiles[selectedTile], tiles[index]] = [tiles[index], tiles[selectedTile]];
         renderPuzzle();
         selectedTile = null;
@@ -156,47 +170,65 @@
       }
     }
 
+    // 檢查是否完成拼圖
     function checkCompletion() {
       if (tiles.every((tile, index) => tile === originalOrder[index])) {
-        message.textContent = '恭喜你完成拼圖！即將播放影片。';
+        message.textContent = "恭喜你完成拼圖！請點擊下方按鈕播放影片。";
         bgMusic.pause();
-        setTimeout(() => {
-          playFullScreenVideo();
-        }, 1000);
+        showPlayButton();
       }
     }
 
+    // 顯示播放影片的按鈕
+    function showPlayButton() {
+      if (!document.getElementById("playButton")) {
+        const playButton = document.createElement("button");
+        playButton.id = "playButton";
+        playButton.textContent = "播放影片";
+        playButton.addEventListener("click", playFullScreenVideo);
+        document.body.appendChild(playButton);
+      }
+    }
+
+    // 播放影片並進入全螢幕模式
     function playFullScreenVideo() {
-      videoPlayer.style.display = 'block';
-      const requestFullScreen = videoPlayer.requestFullscreen || videoPlayer.webkitRequestFullscreen || videoPlayer.mozRequestFullScreen || videoPlayer.msRequestFullscreen;
+      // 移除播放按鈕
+      const btn = document.getElementById("playButton");
+      if (btn) btn.remove();
+      
+      message.textContent = "";
+      videoPlayer.style.display = "block";
+      const requestFullScreen = videoPlayer.requestFullscreen ||
+        videoPlayer.webkitRequestFullscreen ||
+        videoPlayer.mozRequestFullScreen ||
+        videoPlayer.msRequestFullscreen;
       if (requestFullScreen) {
         requestFullScreen.call(videoPlayer);
       }
-      videoPlayer.play();
+      videoPlayer.play().catch(error => {
+        console.error("影片播放錯誤:", error);
+      });
     }
 
-    // 圖片載入完成後開始遊戲
+    // 視窗尺寸改變時，重新計算尺寸與重渲染拼圖
+    window.onresize = function() {
+      calculateDimensions();
+      renderPuzzle();
+    };
+
+    // 遊戲開始：等圖片載入後取得原始尺寸，再初始化遊戲
     window.onload = function() {
       const img = new Image();
       img.src = imageSrc;
       img.onload = function() {
-        // 儲存原始圖片尺寸
         oriWidth = img.naturalWidth;
         oriHeight = img.naturalHeight;
-        // 初次計算尺寸並渲染拼圖
         calculateDimensions();
         bgMusic.play();
         generatePuzzle();
         shuffleTiles();
         renderPuzzle();
-      }
-    };
-
-    // 當窗口尺寸改變時，重新計算尺寸並重渲染拼圖
-    window.onresize = function() {
-      // 避免改變太頻繁導致效能問題，可考慮 debounce 優化
-      calculateDimensions();
-      renderPuzzle();
+      };
     };
   </script>
 </body>
